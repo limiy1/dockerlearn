@@ -27,7 +27,7 @@ docker image rm
 ## Containers
 ### Run a container
 docker run --name myPython -it python:latest /bin/bash  
-1. -it interactive container with a terminal  
+1. -it: interactive container with a terminal  
 
 docker run --name daemon -d ubuntu /bin/sh -c "while true; do echo hello world; sleep 1; done"  
 run a container on background
@@ -82,6 +82,8 @@ services： 即我们要开始定义服务，每个docker容器为一个服务�
 app： 这里我们定义了第一个服务，app 为其名字  
 build: build an image with Dockerfile in the provided path
 image: use directly an image
+expose: Expose ports WITHOUT publishing them to the host machine
+ports: Expose ports WITH publishing them to the host machine
 
 #### Build
 CONTEXT: Either a path to a directory containing a Dockerfile, or a url to a git repository.
