@@ -40,6 +40,25 @@ def hello_world():
     return jsonify(hello="world")
 
 
+@app.route("/parameters/<name>/<int:userid>")
+def learn_parameters(name, userid):
+    return "Test with {}, id = {}".format(name, userid)
+
+
+@app.route("/methods", methods=['GET', 'POST'])
+def learn_requests():
+    if request.method == 'POST':
+        username = request.args.get('username', 'Default')
+        if (request.is_json):
+            content = request.get_json()
+            return content["username"]
+        else:
+            return "No json data"
+        return 'This is a POST request, username = {}'.format(username)
+    else:
+        return 'This is a GET request'
+
+
 @app.route("/static/<path:filename>")
 def staticfiles(filename):
     return send_from_directory(app.config["STATIC_FOLDER"], filename)
