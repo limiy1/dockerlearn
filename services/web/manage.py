@@ -21,3 +21,5 @@ def seed_db():
 
 if __name__ == "__main__":
     cli()
+
+# FLASK_APP env variable will be used to find the application.

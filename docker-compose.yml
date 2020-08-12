@@ -3,7 +3,7 @@ version: "3.7"
 services:
   web:
     build: ./services/web
-    command: python manage.py run -h 0.0.0.0
+    command: python manage.py run -h 0.0.0.0  # similar to use click manager to run flask application, only dev mode
     volumes:
       - ./services/web/:/usr/src/app/
     ports:
@@ -12,6 +12,7 @@ services:
       - ./.env.dev
 
   db:
+    # default port is 5432
     image: postgres:12-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/

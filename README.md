@@ -65,6 +65,15 @@ docker volume inspect test_volume
 docker volume rm test_volume
 
 
+## Dockerfile
+A script to build a container
+
+### Keywords:
+CMD: Default command to run just after a container has started. (Can be overridden by docker run)  
+ENTRYPOINT: Default command to run just after a container has started. (CANNOT be overidden by docker run)  
+ 
+
+
 ## Docker compose
 A script of "docker run" for several containers which collabrate with each other
 
@@ -80,10 +89,13 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 ### Keywords
 services： 即我们要开始定义服务，每个docker容器为一个服务。  
 app： 这里我们定义了第一个服务，app 为其名字  
-build: build an image with Dockerfile in the provided path
-image: use directly an image
-expose: Expose ports WITHOUT publishing them to the host machine
-ports: Expose ports WITH publishing them to the host machine
+build: build an image with Dockerfile in the provided path  
+image: use directly an image  
+expose: Expose ports WITHOUT publishing them to the host machine  
+ports: Expose ports WITH publishing them to the host machine  
+env_file: Set the environment variables for a container  
+command: Default command to run just after a container has started. (CMD in Dockerfile)  
+
 
 #### Build
 CONTEXT: Either a path to a directory containing a Dockerfile, or a url to a git repository.

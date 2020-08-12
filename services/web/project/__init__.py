@@ -13,7 +13,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 
 # __name__ is set to the current class/package by default
-# Here, tells flask where to look for the resources, ie. insdie the current package
+# Here, tells flask where to look for the resources, ie. inside the current package
 app = Flask(__name__)
 
 # Load configuration from configuration file for flask
@@ -21,9 +21,14 @@ app = Flask(__name__)
 app.config.from_object("project.config.Config")
 
 # Create a database model
+# In SQLAlchemy, model is independent of the true database behind it.
+# Manage database using python language and python model.
+# To use existing db: https://zhuanlan.zhihu.com/p/27400862#反射
+# More on: https://flask-sqlalchemy.palletsprojects.com/en/2.x/
 db = SQLAlchemy(app)
 
 
+# Example of models: https://flask-sqlalchemy.palletsprojects.com/en/2.x/models/
 class User(db.Model):
     __tablename__ = "users"
 
