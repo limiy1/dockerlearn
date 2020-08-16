@@ -23,10 +23,15 @@ services:
 
   zookeeper:
     # for kafka
+    # https://www.hangge.com/blog/cache/detail_2791.html
     image: wurstmeister/zookeeper
     ports:
       - "2181:2181"
   kafka:
+    # Enter the container; docker exec -it kafka /bin/bash
+    # List topics; docker exec kafka kafka-topics.sh --list --zookeeper 192.168.60.133:2181
+    # Producing; docker exec -it kafka kafka-console-producer.sh --broker-list 192.168.60.133:9092 --topic test
+    # Consuming; 
     image: wurstmeister/kafka
     ports:
       - "9092"

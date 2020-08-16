@@ -10,7 +10,22 @@ from flask import (
     url_for
 )
 from flask_sqlalchemy import SQLAlchemy
+from confluent_kafka import Producer
 
+
+def delivery_report(err, msg):
+    """ Called once for each message produced to indicate delivery result.
+        Triggered by poll() or flush(). """
+    if err is not None:
+        print('Message delivery failed: {}'.format(err))
+    else:
+        print('Message delivered to {} [{}]'.format(msg.topic(), msg.partition()))
+
+def produce_message(message):
+    p = Producer({'bootstrap.servers': 'kafka:9092'})
+    p.poll(0)
+    p.produce('testtopic0', message.encode('utf-8'), callback=delivery_report)
+    p.flush()
 
 # __name__ is set to the current class/package by default
 # Here, tells flask where to look for the resources, ie. inside the current package
@@ -52,16 +67,20 @@ def learn_parameters(name, userid):
 
 @app.route("/methods", methods=['GET', 'POST'])
 def learn_requests():
+    message = ''
     if request.method == 'POST':
         username = request.args.get('username', 'Default')
         if (request.is_json):
             content = request.get_json()
-            return content["username"]
+            message = 'This is a POST request, username = {}'.format(content["username"])
         else:
-            return "No json data"
-        return 'This is a POST request, username = {}'.format(username)
+            message = "No json data"
+        
     else:
-        return 'This is a GET request'
+        message = 'This is a GET request'
+
+    produce_message(message)
+    return message
 
 
 @app.route("/static/<path:filename>")

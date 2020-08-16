@@ -47,6 +47,9 @@ docker ps -a
 ### Exit a container
 exit
 
+### Check logs without entering
+docker logs -f -t --tail 30 container_name
+
 ### Enter into a container running in background
 docker attach myPython
 
