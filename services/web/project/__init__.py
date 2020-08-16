@@ -10,6 +10,7 @@ from flask import (
     url_for
 )
 from flask_sqlalchemy import SQLAlchemy
+import multiprocessing
 from confluent_kafka import Producer
 
 
@@ -79,7 +80,8 @@ def learn_requests():
     else:
         message = 'This is a GET request'
 
-    produce_message(message)
+    kafka_thread = multiprocessing.Process(target=produce_message, args=(message,))
+    kafka_thread.start()
     return message
 
 
