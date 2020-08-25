@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # install system dependencies
-RUN apt-get update && apt-get install -y netcat build-essential cmake
+RUN apt-get update && apt-get install -y netcat build-essential pkg-config cmake librdkafka-dev zlib1g-dev libssl-dev libsasl2-dev libzstd-dev liblz4-dev
 
 # install dependencies
 RUN pip install --upgrade pip
