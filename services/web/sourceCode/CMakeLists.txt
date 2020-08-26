@@ -5,6 +5,18 @@ set(CMAKE_CXX_STANDARD 11)
 set(RdKafka_ROOT /usr)
 set(RdKafka_LIBNAME librdkafka.a)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
+set(CMAKE_C_FLAGS "-Wall -Wextra")
+set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_C_FLAGS_RELEASE "-O3")
+
 find_package (PkgConfig REQUIRED)
 pkg_check_modules (RDKAFKA REQUIRED rdkafka)
 
@@ -18,24 +30,13 @@ find_library(RdKafka_LIBRARY
     HINTS ${RdKafka_ROOT}/lib ${RdKafka_ROOT}/lib64
 )
 
-#find_path(RdKafka_PACKCONFIG_PATH
-#    NAMES rdkafka.pc
-#    HINTS /usr/lib/x86_64-linux-gnu/pkgconfig/
-#)
-
 message("RDKAFKA header path ${RdKafka_INCLUDE_DIR}")
 message("RDKAFKA lib name ${RdKafka_LIBNAME}")
 message("RDKAFKA lib: ${RdKafka_LIBRARY}")
-#message("RDKAFKA packconfig path: ${RdKafka_PACKCONFIG_PATH}")
-
-#set(ENV{PKG_CONFIG_PATH} "${RdKafka_PACKCONFIG_PATH}")
-
-#pkg_search_module(PKG_RDKAFKA REQUIRED IMPORTED_TARGET rdkafka)
-#pkg_check_modules (RDKAFKA REQUIRED rdkafka)
-#message("RDKAFKA_LIBRARIES = ${RDKAFKA_LIBRARIES}")
 
 include_directories(${RdKafka_INCLUDE_DIR})
 
+# static linkage results in ~1Mb executable :)
 add_executable(helloworld main.cpp)
 target_link_libraries(
     helloworld
