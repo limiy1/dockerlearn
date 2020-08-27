@@ -3,7 +3,7 @@ project(helloworld)
 
 set(CMAKE_CXX_STANDARD 11)
 set(RdKafka_ROOT /usr)
-set(RdKafka_LIBNAME librdkafka.a)
+set(RdKafka_LIBNAME librdkafka)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -16,9 +16,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_C_FLAGS "-Wall -Wextra")
 set(CMAKE_C_FLAGS_DEBUG "-g")
 set(CMAKE_C_FLAGS_RELEASE "-O3")
-
-find_package (PkgConfig REQUIRED)
-pkg_check_modules (RDKAFKA REQUIRED rdkafka)
 
 find_path(RdKafka_INCLUDE_DIR
     NAMES librdkafka/rdkafka.h
@@ -40,13 +37,5 @@ include_directories(${RdKafka_INCLUDE_DIR})
 add_executable(helloworld main.cpp)
 target_link_libraries(
     helloworld
-    pthread
-    z
-    ssl
-    crypto
-    sasl2
-    zstd
-    lz4
-    ${CMAKE_DL_LIBS}
     ${RdKafka_LIBRARY}
 )

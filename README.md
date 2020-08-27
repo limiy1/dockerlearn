@@ -69,7 +69,8 @@ docker volume rm test_volume
 
 
 ## Dockerfile
-A script to build a container
+A script to build a container  
+docker build .  
 
 ### Keywords:
 CMD: Default command to run just after a container has started. (Can be overridden by docker run)  
