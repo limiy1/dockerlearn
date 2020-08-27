@@ -1,162 +1,144 @@
-#include <ctype.h>  
-#include <signal.h>  
-#include <string.h>  
-#include <unistd.h>  
-#include <stdlib.h>  
-#include <syslog.h>  
-#include <sys/time.h>  
-#include <errno.h>  
+#include <iostream>
+#include <string>
+#include <cstdlib>
+#include <cstdio>
+#include <csignal>
+#include <cstring>
   
-#include "librdkafka/rdkafka.h"  
-  
-const int PRODUCER_INIT_FAILED = -1;  
-const int PRODUCER_INIT_SUCCESS = 0;  
-const int PUSH_DATA_FAILED = -1;  
-const int PUSH_DATA_SUCCESS = 0;  
-  
-  
-static void logger(const rd_kafka_t *rk, int level,const char *fac, const char *buf)   
-{  
-    struct timeval tv;  
-    gettimeofday(&tv, NULL);  
-    fprintf(stderr, "%u.%03u RDKAFKA-%i-%s: %s: %s\n",  
-        (int)tv.tv_sec, (int)(tv.tv_usec / 1000),  
-        level, fac, rk ? rd_kafka_name(rk) : NULL, buf);  
-}  
-  
-  
-class ProducerKafka  
-{  
-public:  
-    ProducerKafka(){};  
-    ~ProducerKafka(){}  
-  
-    int init_kafka(int partition, char *brokers, char *topic);  
-    int push_data_to_kafka(const char* buf, const int buf_len);  
-    void destroy();  
-  
-private:  
-    int partition_;   
-      
-    //rd  
-    rd_kafka_t* handler_;  
-    rd_kafka_conf_t *conf_;  
-      
-    //topic  
-    rd_kafka_topic_t *topic_;  
-    rd_kafka_topic_conf_t *topic_conf_;  
-};  
-  
-int ProducerKafka::init_kafka(int partition, char *brokers, char *topic)  
-{  
-    char tmp[16]={0};  
-    char errstr[512]={0};     
-  
-    partition_ = partition;   
-  
-    /* Kafka configuration */  
-    conf_ = rd_kafka_conf_new();  
-      
-    //set logger :register log function  
-    rd_kafka_conf_set_log_cb(conf_, logger);      
-      
-    /* Quick termination */  
-    snprintf(tmp, sizeof(tmp), "%i", SIGIO);  
-    rd_kafka_conf_set(conf_, "internal.termination.signal", tmp, NULL, 0);  
-  
-    /*topic configuration*/  
-    topic_conf_ = rd_kafka_topic_conf_new();  
-  
-    if (!(handler_  = rd_kafka_new(RD_KAFKA_PRODUCER, conf_, errstr, sizeof(errstr))))   
-    {  
-        fprintf(stderr, "*****Failed to create new producer: %s*******\n",errstr);  
-        return PRODUCER_INIT_FAILED;  
-    }  
-  
-    rd_kafka_set_log_level(handler_, LOG_DEBUG);  
-  
-    /* Add brokers */  
-    if (rd_kafka_brokers_add(handler_, brokers) == 0)  
-    {  
-        fprintf(stderr, "****** No valid brokers specified********\n");  
-        return PRODUCER_INIT_FAILED;         
-    }     
-      
-  
-    /* Create topic */  
-    topic_ = rd_kafka_topic_new(handler_, topic, topic_conf_);  
-      
-    return PRODUCER_INIT_SUCCESS;  
-}  
-  
-void ProducerKafka::destroy()  
-{  
-    /* Destroy topic */  
-    rd_kafka_topic_destroy(topic_);  
-  
-    /* Destroy the handle */  
-    rd_kafka_destroy(handler_);  
-}  
-  
-int ProducerKafka::push_data_to_kafka(const char* buffer, const int buf_len)  
-{  
-    int ret;  
-    char errstr[512]={0};  
-      
-    if(NULL == buffer)  
-        return 0;  
-  
-    ret = rd_kafka_produce(topic_, partition_, RD_KAFKA_MSG_F_COPY,   
-                            (void*)buffer, (size_t)buf_len, NULL, 0, NULL);  
-  
-    if(ret == -1)  
-    {  
-        fprintf(stderr,"****Failed to produce to topic %s partition %i: %s*****\n",  
-            rd_kafka_topic_name(topic_), partition_,  
-            rd_kafka_err2str(rd_kafka_errno2err(errno)));  
-      
-        rd_kafka_poll(handler_, 0);  
-        return PUSH_DATA_FAILED;  
-    }  
-      
-    fprintf(stderr, "***Sent %d bytes to topic:%s partition:%i*****\n",  
-        buf_len, rd_kafka_topic_name(topic_), partition_);  
-  
-    rd_kafka_poll(handler_, 0);  
-  
-    return PUSH_DATA_SUCCESS;  
-}  
-  
+#include "librdkafka/rdkafkacpp.h"  
+
+class ExampleDeliveryReportCb : public RdKafka::DeliveryReportCb {
+public:
+  void dr_cb (RdKafka::Message &message) {
+    /* If message.err() is non-zero the message delivery failed permanently
+     * for the message. */
+    if (message.err())
+      std::cout << "% Message delivery failed: " << message.errstr() << std::endl;
+    else
+      std::cout << "% Message delivered to topic " << message.topic_name() <<
+        " [" << message.partition() << "] at offset " <<
+        message.offset() << std::endl;
+  }
+};
+
 int main()  
 {  
     printf("Hello kafka :) \n");
-    char test_data[100];  
-    strcpy(test_data, "helloworld");  
-  
-    ProducerKafka* producer = new ProducerKafka;  
-    if (PRODUCER_INIT_SUCCESS == producer->init_kafka(0, "192.168.1.108:9092", "chenxun"))  
-    {  
-        printf("producer init success\n");  
-    }  
-    else  
-    {  
-        printf("producer init failed\n");  
-        return 1;  
-    }  
-      
-    while (fgets(test_data, sizeof(test_data), stdin)) {  
-        size_t len = strlen(test_data);  
-        if (test_data[len - 1] == '\n')  
-            test_data[--len] = '\0';  
-        if (strcmp(test_data, "end") == 0)  
-            break;  
-        if (PUSH_DATA_SUCCESS == producer->push_data_to_kafka(test_data, strlen(test_data)))  
-            printf("push data success %s\n", test_data);  
-        else  
-            printf("push data failed %s\n", test_data);  
-    }  
-  
-    producer->destroy();  
-      
-    return 0;     
+
+    std::string topic("testcpp");
+    std::string broker("kafka:9092");
+    std::string message("test message");
+    
+    /*
+     * Create configuration object
+     */
+    RdKafka::Conf *conf = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
+
+    std::string errstr;
+
+    /* Set bootstrap broker(s) as a comma-separated list of
+     * host or host:port (default port 9092).
+     * librdkafka will use the bootstrap brokers to acquire the full
+     * set of brokers from the cluster. */
+    if (conf->set("bootstrap.servers", broker.c_str(), errstr) !=
+        RdKafka::Conf::CONF_OK) {
+      std::cerr << errstr << std::endl;
+      exit(1);
+    }
+    
+    
+    /* Set the delivery report callback. */
+    ExampleDeliveryReportCb ex_dr_cb;
+
+    if (conf->set("dr_cb", &ex_dr_cb, errstr) != RdKafka::Conf::CONF_OK) {
+      std::cerr << errstr << std::endl;
+      exit(1);
+    }
+    
+    /*
+     * Create producer instance.
+     */
+    RdKafka::Producer *producer = RdKafka::Producer::create(conf, errstr);
+    if (!producer) {
+      std::cerr << "Failed to create producer: " << errstr << std::endl;
+      exit(1);
+    }
+
+    delete conf;
+    
+    
+    /* Push the message to broker asyn */
+
+    /*
+     * Send/Produce message.
+     * This is an asynchronous call, on success it will only
+     * enqueue the message on the internal producer queue.
+     * The actual delivery attempts to the broker are handled
+     * by background threads.
+     * The previously registered delivery report callback
+     * is used to signal back to the application when the message
+     * has been delivered (or failed permanently after retries).
+     */
+    bool retry = false;
+    do {
+      RdKafka::ErrorCode err =
+        producer->produce(
+                          /* Topic name */
+                          topic.c_str(),
+                          /* Any Partition: the builtin partitioner will be
+                           * used to assign the message to a topic based
+                           * on the message key, or random partition if
+                           * the key is not set. */
+                          RdKafka::Topic::PARTITION_UA,
+                          /* Make a copy of the value */
+                          RdKafka::Producer::RK_MSG_COPY /* Copy payload */,
+                          /* Value */
+                          const_cast<char *>(message.c_str()), message.size(),
+                          /* Key */
+                          NULL, 0,
+                          /* Timestamp (defaults to current time) */
+                          0,
+                          /* Message headers, if any */
+                          NULL,
+                          /* Per-message opaque value passed to
+                           * delivery report */
+                          NULL);
+
+      if (err != RdKafka::ERR_NO_ERROR) {
+        std::cout << "% Failed to produce to topic " << topic << ": " <<
+          RdKafka::err2str(err) << std::endl;
+
+        if (err == RdKafka::ERR__QUEUE_FULL) {
+          /* If the internal queue is full, wait for
+           * messages to be delivered and then retry.
+           * The internal queue represents both
+           * messages to be sent and messages that have
+           * been sent or failed, awaiting their
+           * delivery report callback to be called.
+           *
+           * The internal queue is limited by the
+           * configuration property
+           * queue.buffering.max.messages */
+          producer->poll(1000/*block for max 1000ms*/);
+          retry = true;
+        }
+      } else {
+        std::cout << "% Enqueued message (" << message.size() << " bytes) " <<
+          "for topic " << topic << std::endl;
+      }
+
+      /* A producer application should continually serve
+       * the delivery report queue by calling poll()
+       * at frequent intervals.
+       * Either put the poll call in your main loop, or in a
+       * dedicated thread, or call it after every produce() call.
+       * Just make sure that poll() is still called
+       * during periods where you are not producing any messages
+       * to make sure previously produced messages have their
+       * delivery report callback served (and any other callbacks
+       * you register). */
+      producer->poll(0);
+    } while(retry);
+    
+    producer->flush(1000);
 }

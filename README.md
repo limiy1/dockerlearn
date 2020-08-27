@@ -117,6 +117,9 @@ docker-compose exec containerName COMMAND
 ### Stop and remove
 docker-compose down -v
 
+# Debugs
+## docker logs
+
 # Examples
 ## Docker with Nginx
 1. Prepare a webpage, such as index.html:

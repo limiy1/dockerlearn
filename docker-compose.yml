@@ -31,7 +31,7 @@ services:
     # Enter the container; docker exec -it kafka /bin/bash
     # List topics; docker exec kafka kafka-topics.sh --list --zookeeper 192.168.60.133:2181
     # Producing; docker exec -it kafka kafka-console-producer.sh --broker-list 192.168.60.133:9092 --topic test
-    # Consuming; 
+    # Consuming; docker exec -it kafka kafka-console-consumer.sh --bootstrap-server 192.168.60.133:9092 --topic test --from-beginning
     image: wurstmeister/kafka
     ports:
       - "9092"

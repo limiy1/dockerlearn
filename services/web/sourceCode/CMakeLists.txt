@@ -3,7 +3,7 @@ project(helloworld)
 
 set(CMAKE_CXX_STANDARD 11)
 set(RdKafka_ROOT /usr)
-set(RdKafka_LIBNAME librdkafka)
+set(RdKafka_LIBNAME librdkafka++)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -13,17 +13,13 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-set(CMAKE_C_FLAGS "-Wall -Wextra")
-set(CMAKE_C_FLAGS_DEBUG "-g")
-set(CMAKE_C_FLAGS_RELEASE "-O3")
-
 find_path(RdKafka_INCLUDE_DIR
     NAMES librdkafka/rdkafka.h
     HINTS ${RdKafka_ROOT}/include
 )
 
 find_library(RdKafka_LIBRARY
-    NAMES ${RdKafka_LIBNAME} rdkafka
+    NAMES ${RdKafka_LIBNAME} rdkafka++
     HINTS ${RdKafka_ROOT}/lib ${RdKafka_ROOT}/lib64
 )
 
