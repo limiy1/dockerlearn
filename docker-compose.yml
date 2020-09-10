@@ -10,6 +10,8 @@ services:
       - 5000:5000
     env_file:
       - ./.env.dev
+    depends_on:
+      - db
 
   db:
     # default port is 5432
@@ -41,7 +43,9 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - zookeeper
 
 volumes:
-  postgres_data: #volumn name is dockerlearn_postgres_data
+  postgres_data: #volumn name is dockerlearn_postgres_data, docker automatically creates it in a host directory and mount it. Data inside is permanent
 

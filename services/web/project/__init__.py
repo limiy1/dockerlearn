@@ -22,19 +22,23 @@ def delivery_report(err, msg):
     else:
         print('Message delivered to {} [{}]'.format(msg.topic(), msg.partition()))
 
+
 def produce_message(message):
     p = Producer({'bootstrap.servers': 'kafka:9092'})
     p.poll(0)
     p.produce('testtopic0', message.encode('utf-8'), callback=delivery_report)
     p.flush()
 
+
 # __name__ is set to the current class/package by default
 # Here, tells flask where to look for the resources, ie. inside the current package
 app = Flask(__name__)
 
+
 # Load configuration from configuration file for flask
 # The configuration is to be found in project/config(.py)/Config(Class)
 app.config.from_object("project.config.Config")
+
 
 # Create a database model
 # In SQLAlchemy, model is independent of the true database behind it.
@@ -73,10 +77,9 @@ def learn_requests():
         username = request.args.get('username', 'Default')
         if (request.is_json):
             content = request.get_json()
-            message = 'This is a POST request, username = {}'.format(content["username"])
+            message = f"This is a POST request, {username} username = {content['username']}"
         else:
             message = "No json data"
-        
     else:
         message = 'This is a GET request'
 
