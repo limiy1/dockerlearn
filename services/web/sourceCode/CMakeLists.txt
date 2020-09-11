@@ -23,14 +23,27 @@ add_library(testlib
     testlib.cpp
 )
 
-LINK_DIRECTORIES(/usr/lib/)
+
 # Use as a shared library
 add_library(testkafka 
     SHARED
     kafkaproxy.cpp
 )
 
+LINK_DIRECTORIES(/usr/lib/)
+
 target_link_libraries(
     testkafka
     rdkafka++
 )
+
+set(MYLIB_VERSION_MAJOR 0)
+set(MYLIB_VERSION_MINOR 1)
+set(MYLIB_VERSION_PATCH 1)
+set(MYLIB_BUILD_NUMBER 1)
+set(MYLIB_VERSION_STRING ${MYLIB_VERSION_MAJOR}.${MYLIB_VERSION_MINOR}.${MYLIB_VERSION_PATCH})
+
+set_target_properties(testkafka
+                      PROPERTIES VERSION ${MYLIB_VERSION_STRING}
+                      SOVERSION ${MYLIB_VERSION_STRING})
+

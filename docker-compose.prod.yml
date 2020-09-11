@@ -15,6 +15,7 @@ services:
       - ./.env.prod
     depends_on:
       - db
+
   db:
     image: postgres:12-alpine
     volumes:
@@ -30,6 +31,24 @@ services:
       - 1337:80
     depends_on:
       - web
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://:9092
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - zookeeper
 
 volumes:
   postgres_data:

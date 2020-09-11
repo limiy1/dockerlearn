@@ -14,12 +14,11 @@ ENV PYTHONUNBUFFERED 1
 
 # install system dependencies
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc
+    apt-get install -y --no-install-recommends build-essential cmake wget
 
 # lint
 RUN pip install --upgrade pip
 RUN pip install flake8
-COPY . /usr/src/app/
 
 # python check, ignore "line too long" and "not used module" checks
 RUN flake8 --ignore=E501,F401 .
@@ -28,6 +27,18 @@ RUN flake8 --ignore=E501,F401 .
 COPY ./requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt
 
+# install rdkafka
+WORKDIR /usr/src/kafka
+RUN wget --no-check-certificate --content-disposition https://github.com/edenhill/librdkafka/archive/v1.5.0.tar.gz
+RUN tar -xf librdkafka-1.5.0.tar.gz
+WORKDIR /usr/src/kafka/librdkafka-1.5.0
+RUN ./configure --prefix /usr
+RUN make && make install
+
+# copy and build c-source code
+WORKDIR /usr/src/c/
+COPY ./sourceCode/* ./
+RUN cmake . && make
 
 #########
 # FINAL #
@@ -54,6 +65,11 @@ WORKDIR $APP_HOME
 RUN apt-get update && apt-get install -y --no-install-recommends netcat
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
+RUN mkdir /usr/src/c
+COPY --from=builder /usr/src/c/libtestkafka.so.* /usr/src/c
+COPY --from=builder /usr/lib/librdkafka++.so.1 /usr/local/lib
+COPY --from=builder /usr/lib/librdkafka.so.1 /usr/local/lib
+RUN ln -s /usr/src/c/libtestkafka.so.* /usr/src/c/libtestkafka.so
 RUN pip install --upgrade pip
 RUN pip install --no-cache /wheels/*
 
@@ -61,7 +77,9 @@ RUN pip install --no-cache /wheels/*
 COPY ./entrypoint.prod.sh $APP_HOME
 
 # copy project
-COPY . $APP_HOME
+COPY ./entrypoint.sh $APP_HOME/entrypoint.sh
+COPY ./manage.py $APP_HOME/manage.py
+COPY ./project $APP_HOME/project
 
 # chown all the files to the app user
 RUN chown -R app:appgroup $APP_HOME
