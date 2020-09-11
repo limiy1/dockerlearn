@@ -12,6 +12,7 @@ from flask import (
 from flask_sqlalchemy import SQLAlchemy
 import multiprocessing
 from confluent_kafka import Producer
+from ctypes import cdll
 
 
 def delivery_report(err, msg):
@@ -28,6 +29,9 @@ def produce_message(message):
     p.poll(0)
     p.produce('testtopic0', message.encode('utf-8'), callback=delivery_report)
     p.flush()
+
+
+lib = cdll.LoadLibrary('/usr/src/c/libtestlib.so')
 
 
 # __name__ is set to the current class/package by default
@@ -86,6 +90,12 @@ def learn_requests():
     kafka_thread = multiprocessing.Process(target=produce_message, args=(message,))
     kafka_thread.start()
     return message
+
+
+@app.route("/testclib/<string:queryString>")
+def testclib(queryString):
+    a = lib.testfunc(bytes(queryString, encoding='utf-8'))
+    return str(a)
 
 
 @app.route("/static/<path:filename>")

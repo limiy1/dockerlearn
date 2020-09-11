@@ -10,8 +10,15 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
+# Use as a standalone executable
 add_executable(helloworld main.cpp)
 target_link_libraries(
     helloworld
     rdkafka++
+)
+
+# Use as a shared library
+add_library(testlib 
+    SHARED
+    testlib.cpp
 )
