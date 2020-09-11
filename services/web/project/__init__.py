@@ -31,7 +31,11 @@ def produce_message(message):
     p.flush()
 
 
+#os.add_dll_directory('/usr/lib/')
 lib = cdll.LoadLibrary('/usr/src/c/libtestlib.so')
+
+#cdll.LoadLibrary('/usr/lib/librdkafka++.so')
+kafkaclib = cdll.LoadLibrary('/usr/src/c/libtestkafka.so')
 
 
 # __name__ is set to the current class/package by default
@@ -96,6 +100,13 @@ def learn_requests():
 def testclib(queryString):
     a = lib.testfunc(bytes(queryString, encoding='utf-8'))
     return str(a)
+
+
+@app.route("/testkafka/<string:queryString>")
+def testkafka(queryString):
+    res = kafkaclib.sendMessage(None, b'PythonTopic' ,bytes(queryString, encoding='utf-8'))
+    resultString = ["unknown", "succes", "fail"]
+    return resultString[res]
 
 
 @app.route("/static/<path:filename>")

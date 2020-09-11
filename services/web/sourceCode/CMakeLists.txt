@@ -22,3 +22,15 @@ add_library(testlib
     SHARED
     testlib.cpp
 )
+
+LINK_DIRECTORIES(/usr/lib/)
+# Use as a shared library
+add_library(testkafka 
+    SHARED
+    kafkaproxy.cpp
+)
+
+target_link_libraries(
+    testkafka
+    rdkafka++
+)
