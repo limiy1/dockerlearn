@@ -7,12 +7,14 @@ from flask import (
     send_from_directory,
     request,
     redirect,
-    url_for
+    url_for,
+    make_response
 )
 from flask_sqlalchemy import SQLAlchemy
 import multiprocessing
 from confluent_kafka import Producer
 from ctypes import cdll
+import logging
 
 
 def delivery_report(err, msg):
@@ -29,6 +31,13 @@ def produce_message(message):
     p.poll(0)
     p.produce('testtopic0', message.encode('utf-8'), callback=delivery_report)
     p.flush()
+
+
+def reply_and_close(response):
+    response = make_response(response)
+    response.headers['Connection'] = 'close'
+    app.logger.error(response)
+    return response
 
 
 kafkaclib = cdll.LoadLibrary('/usr/src/c/libtestkafka.so')
@@ -90,6 +99,25 @@ def learn_requests():
     kafka_thread = multiprocessing.Process(target=produce_message, args=(message,))
     kafka_thread.start()
     return message
+
+
+@app.route("/post", methods=['GET', 'POST'])
+def postInfo():
+    resultString = ["unknown", "succes", "fail"]
+    app.logger.error('Hello from flask')
+
+    if request.method == 'POST':
+        version = request.args.get('version', 'Default')
+        if (request.is_json):
+            content = request.get_json()
+            queryString = content['msg']
+            res = kafkaclib.sendMessage(None, b'Queries', bytes(queryString, encoding='utf-8'))
+            print('return ' + str(res))
+            return reply_and_close(resultString[res])
+        else:
+            print('no json data')
+    print('return fail')
+    return reply_and_close('fail')
 
 
 @app.route("/testkafka/<string:queryString>")

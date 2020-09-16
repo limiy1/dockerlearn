@@ -32,6 +32,7 @@ services:
   kafka:
     # Config https://blog.csdn.net/weixin_38399962/article/details/90057227
     # Enter the container; docker exec -it kafka /bin/bash
+    # Check environment variable; docker exec <container_id> bash -c 'echo "$ENV_VAR"'
     # List topics; docker exec kafka kafka-topics.sh --list --zookeeper 192.168.60.133:2181
     # Producing; docker exec -it kafka kafka-console-producer.sh --broker-list 192.168.60.133:9092 --topic test
     # Consuming; docker exec -it kafka kafka-console-consumer.sh --bootstrap-server 192.168.60.133:9092 --topic test --from-beginning
