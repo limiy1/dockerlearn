@@ -1,34 +1,18 @@
 version: "3.7"
 
 services:
-  web:
-    build: ./services/web
-    command: python manage.py run -h 0.0.0.0  # similar to use click manager to run flask application, only dev mode
-    volumes:
-      - ./services/web/:/usr/src/app/
-    ports:
-      - 5000:5000
-    env_file:
-      - ./.env.dev
-    depends_on:
-      - db
-
-  db:
-    # default port is 5432
-    image: postgres:12-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=hello_flask
-      - POSTGRES_PASSWORD=hello_flask
-      - POSTGRES_DB=hello_flask_dev
-
   zookeeper:
     # for kafka
     # https://www.hangge.com/blog/cache/detail_2791.html
-    image: wurstmeister/zookeeper
+    image: confluentinc/cp-zookeeper:5.5.1
     ports:
       - "2181:2181"
+    networks:
+      - ProducerNetwork
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
   kafka:
     # Config https://blog.csdn.net/weixin_38399962/article/details/90057227
     # Enter the container; docker exec -it kafka /bin/bash
@@ -36,18 +20,29 @@ services:
     # List topics; docker exec kafka kafka-topics.sh --list --zookeeper 192.168.60.133:2181
     # Producing; docker exec -it kafka kafka-console-producer.sh --broker-list 192.168.60.133:9092 --topic test
     # Consuming; docker exec -it kafka kafka-console-consumer.sh --bootstrap-server 192.168.60.133:9092 --topic test --from-beginning
-    image: wurstmeister/kafka
+    build: ./services/kafka
     ports:
       - "9092"
     environment:
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://:9092
-      KAFKA_LISTENERS: PLAINTEXT://:9092
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      #KAFKA_LISTENER_SECURITY_PROTOCOL_MAP:LISTENER1:PLAINTEXT,LISTENER2:PLAINTEXT
+      #KAFKA_ADVERTISED_LISTENERS:LISTENER1://kafka:9092,LISTENER2://kafka:9093
+      #KAFKA_LISTENERS:LISTENER1://:9092,LISTENER2://kafka:9093
+      #KAFKA_OPTS:'-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf'
+
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      #ZOOKEEPER_SASL_ENABLED:'FALSE'
+      #KAFKA_INTER_BROKER_LISTENER_NAME:LISTENER1
     depends_on:
       - zookeeper
+    networks:
+      - ProducerNetwork
 
-volumes:
-  postgres_data: #volumn name is dockerlearn_postgres_data, docker automatically creates it in a host directory and mount it. Data inside is permanent
+networks:
+    ProducerNetwork:
+      name: producernet
+      driver: bridge
 
