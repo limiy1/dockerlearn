@@ -117,6 +117,16 @@ docker-compose exec containerName COMMAND
 ### Stop and remove
 docker-compose down -v
 
+## Network
+### Docker-compose
+By default Compose sets up a single network for your app.  
+Can specify custom networks  
+
+docker network ls: list all existing networks.  
+
+
+
+
 # Debugs
 ## docker logs
 
