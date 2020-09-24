@@ -37,8 +37,17 @@ services:
       ZOOKEEPER_SASL_ENABLED: 'FALSE'
       KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
       KAFKA_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /var/ssl/private/kafka.server.truststore.jks
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: PCTkafka
+      KAFKA_SSL_KEYSTORE_LOCATION: /var/ssl/private/kafka.server.keystore.jks
+      KAFKA_SSL_KEYSTORE_PASSWORD: PCTkafka
+      KAFKA_SSL_KEY_PASSWORD: PCTkafka
 
       KAFKA_OPTS: '-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf'
+
+    volumes:
+      - ./services/kafka/truststore/kafka.truststore.jks:/var/ssl/private/kafka.server.truststore.jks
+      - ./services/kafka/keystore/kafka.keystore.jks:/var/ssl/private/kafka.server.keystore.jks
 
     depends_on:
       - zookeeper
